@@ -343,11 +343,11 @@ $ConnectButton.Add_Click({
             # $TcpClient = [Net.Sockets.TCPClient]$endpoint    
             Try {
                 # $TcpClient.Connect($Server,15600)
-                $Global:ServerStream = [System.IO.File]::Open($Server, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite) # $TcpClient.GetStream()
+                # $Global:ServerStream = $TcpClient.GetStream() # [System.IO.File]::Open($Server, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite) 
                 $data = [text.Encoding]::Ascii.GetBytes($Username)
-                $ServerStream.Write($data,0,$data.length)
-                $ServerStream.Flush()   
-                If ($ServerStream.CanRead -and $ServerStream.CanWrite) { # ($TcpClient.Connected) {       
+                $data | Add-Content -Path $Server # $ServerStream.Write($data,0,$data.length)
+                # $ServerStream.Flush()   
+                # If ($TcpClient.Connected) { # ($ServerStream.CanRead -and $ServerStream.CanWrite) { #
                     $Window.Title = ("{0}: Connected as {1}" -f $Window.Title,$Username)
                     #Kick off a job to watch for messages from clients
                     $newRunspace = [RunSpaceFactory]::CreateRunspace()
@@ -366,7 +366,7 @@ $ConnectButton.Add_Click({
                             Try {                
                                 [byte[]]$inStream = New-Object byte[] 200KB
                                 $buffSize = $client.ReceiveBufferSize
-                                $return = $ServerStream.Read($inStream, 0, $buffSize)
+                                $return = Get-Content -Path $Server # $ServerStream.Read($inStream, 0, $buffSize)
                                 If ($return -gt 0) {
                                     $Messagequeue.Enqueue([System.Text.Encoding]::ASCII.GetString($inStream[0..($return - 1)]))
                                 }
@@ -378,7 +378,7 @@ $ConnectButton.Add_Click({
                             }
                         }
                         #Shutdown the connection as connection has ended
-                        $ServerStream.Close()
+                        #$ServerStream.Close()
                         #$client.Client.Disconnect($True)
                         #$client.Client.Close()
                         #$client.Close()     
@@ -389,7 +389,7 @@ $ConnectButton.Add_Click({
                     $job.PowerShell = $newPowerShell
                     $Job.job = $newPowerShell.AddScript($sb).BeginInvoke()
                     $ClientConnection.$Username = $job             
-                }
+                # }
             } Catch {
                 #Errors Connecting to server
                 $Paragraph.Inlines.Add((New-ChatMessage -Message ("Unable to connect to {0} because of $_.Exception.Message ! Please try again later!" -f $RemoteServer) -ForeGround Red))
@@ -415,8 +415,9 @@ $SendButton.Add_Click({
     }
     $Message = "~M{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text
     $data = [text.Encoding]::Ascii.GetBytes($Message)
-    $ServerStream.Write($data,0,$data.length)
-    $ServerStream.Flush()  
+    $data | Add-Content -Path $Server
+    # $ServerStream.Write($data,0,$data.length)
+    # $ServerStream.Flush()  
     $Inputbox_txt.Clear()  
 })
 
@@ -567,8 +568,9 @@ $Window.Add_KeyDown({
             }
             $Message = "~M{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text
             $data = [text.Encoding]::Ascii.GetBytes($Message)
-            $ServerStream.Write($data,0,$data.length)
-            $ServerStream.Flush()  
+            $data | Add-Content -Path $Server
+            # $ServerStream.Write($data,0,$data.length)
+            # $ServerStream.Flush()  
             $Inputbox_txt.Clear()  
         }  
         "S" {Save-Transcript}      
