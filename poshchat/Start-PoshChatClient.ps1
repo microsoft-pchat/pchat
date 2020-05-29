@@ -338,83 +338,82 @@ $ConnectButton.Add_Click({
             $Paragraph.Inlines.Add((New-ChatMessage -Message $message -ForeGround Green))  
             $Paragraph.Inlines.Add((New-Object System.Windows.Documents.LineBreak))  
             
-            # Connect to the file
-            # $Endpoint = new-object System.Net.IPEndpoint ([ipaddress]::any,$SourcePort)
-            # $TcpClient = [Net.Sockets.TCPClient]$endpoint    
             Try {
-                # $TcpClient.Connect($Server,15600)
-                # $Global:ServerStream = $TcpClient.GetStream() # [System.IO.File]::Open($Server, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite) 
-                # $data = [text.Encoding]::Ascii.GetBytes($Username)
-                $Message | Add-Content -Path $Server # $ServerStream.Write($data,0,$data.length)
-                # $ServerStream.Flush()   
-                # If ($TcpClient.Connected) { # ($ServerStream.CanRead -and $ServerStream.CanWrite) { #
-                    $Window.Title = ("{0}: Connected as {1}" -f $Window.Title,$Username)
-                    #Kick off a job to watch for messages from clients
-                    $newRunspace = [RunSpaceFactory]::CreateRunspace()
-                    $newRunspace.Open()
-                    # $newRunspace.SessionStateProxy.setVariable("TcpClient", $TcpClient)
-                    $newRunspace.SessionStateProxy.setVariable("MessageQueue", $MessageQueue)                
-                    $newRunspace.SessionStateProxy.setVariable("ConnectButton", $ConnectButton)  
-                    $newPowerShell = [PowerShell]::Create()
-                    $newPowerShell.Runspace = $newRunspace   
+                # Write the message to the file
+                $Message | Add-Content -Path $Server
+                
+                $Window.Title = ("{0}: Connected as {1}" -f $Window.Title,$Username)
+                
+                #Kick off a job to watch for changes in the file
+                $newRunspace = [RunSpaceFactory]::CreateRunspace()
+                $newRunspace.Open()
+                $newRunspace.SessionStateProxy.setVariable("MessageQueue", $MessageQueue)                
+                $newRunspace.SessionStateProxy.setVariable("ConnectButton", $ConnectButton)  
+                $newPowerShell = [PowerShell]::Create()
+                $newPowerShell.Runspace = $newRunspace   
 
-                    $fileContents = Get-Content -Path $Server
-                    $fileLines = $fileContents.Split([System.Environment]::NewLine)
+                $fileContents = Get-Content -Path $Server
+                $fileLines = $fileContents.Split([System.Environment]::NewLine)
+                $Paragraph.Inlines.Add((New-ChatMessage -Message ("Starting file:") -ForeGround Black))
+                foreach ($line in $fileLines)
+                {
+                    $Paragraph.Inlines.Add((New-ChatMessage -Message $line -ForeGround Black))
+                    $Paragraph.Inlines.Add((New-Object System.Windows.Documents.LineBreak))
+                }
 
-                    $sb = {
-                        #Code to kick off client connection monitor and look for incoming messages.
-                        # $client = $TCPClient
-                        # $serverstream = $Client.GetStream()
-                        #While client is connected to server, check for incoming traffic
-                        While ($true) { # $client.Connected) {        
-                            Try {                
-                                [byte[]]$inStream = New-Object byte[] 200KB
-                                $buffSize = $client.ReceiveBufferSize
-
-                                # Get the contents of the updated file
-                                $updatedFileContents = Get-Content -Path $Server
-                                $updatedFileLines = $updatedFileContents.Split([System.Environment]::NewLine)
-                                
-                                # Write any lines that were added to the file to the window
-                                $newLines = @()
-                                for ($i = $fileLines[$fileLines.Count]; $i -lt $updatedFileLines[$updatedFileLines.Count]; $i += 1)
-                                {
-                                    $newLines += $updatedFileLines[$i]
-                                }
-                                $return = $newLines # $ServerStream.Read($inStream, 0, $buffSize)
-                                If ($return -gt 0) {
-                                    $Messagequeue.Enqueue([System.Text.Encoding]::ASCII.GetString($inStream[0..($return - 1)]))
-                                }
-
-                                # Update the file so the comparison will work again
-                                $fileContents = $updatedFileContents
-                                $fileLines = $fileContents.Split([System.Environment]::NewLine)
-                            } Catch {
-                                #Connection to server has been closed                            
-                                $Paragraph.Inlines.Add((New-ChatMessage -Message ("Unable to read from $Server because of $_.Exception.Message so closing connection" -f $RemoteServer) -ForeGround Red))
-                                $Messagequeue.Enqueue("~S")
-                                Break
+                $sb = {
+                    $Paragraph.Inlines.Add((New-ChatMessage -Message "Starting file monitor" -ForeGround Green))  
+                    $Paragraph.Inlines.Add((New-Object System.Windows.Documents.LineBreak))  
+        
+                    #Code to kick off file monitor and look for changes in the file
+                    While ($true) {
+                        Try {                
+                            # Get the contents of the updated file
+                            $updatedFileContents = Get-Content -Path $Server
+                            $updatedFileLines = $updatedFileContents.Split([System.Environment]::NewLine)
+                            
+                            $Paragraph.Inlines.Add((New-ChatMessage -Message ("Updated file:") -ForeGround Black))
+                            foreach ($line in $updatedFileLines)
+                            {
+                                $Paragraph.Inlines.Add((New-ChatMessage -Message $line -ForeGround Black))
                             }
-                            Start-Sleep -Seconds 1
+
+                            # Write any lines that were added to the file to the window
+                            $newLines = @()
+                            $Paragraph.Inlines.Add((New-ChatMessage -Message ("Changes since last poll:") -ForeGround Black))
+                            for ($i = $fileLines[$fileLines.Count]; $i -lt $updatedFileLines[$updatedFileLines.Count]; $i += 1)
+                            {
+                                $newLines += $updatedFileLines[$i]
+                                $Paragraph.Inlines.Add((New-ChatMessage -Message $updatedFileLines[$i] -ForeGround Black))
+                            }
+
+                            If ($newLines.Count -gt 0) {
+                                $Messagequeue.Enqueue([System.Text.Encoding]::ASCII.GetString($newLines)) # $inStream[0..($return - 1)]))
+                            }
+
+                            # Update the file so the comparison will work again
+                            $fileContents = $updatedFileContents
+                            $fileLines = $fileContents.Split([System.Environment]::NewLine)
+                        } Catch {
+                            #Connection to server has been closed                            
+                            $Paragraph.Inlines.Add((New-ChatMessage -Message ("Unable to read from $Server because of $_.Exception.Message so closing connection") -ForeGround Red))
+                            $Messagequeue.Enqueue("~S")
+                            Break
                         }
-                        #Shutdown the connection as connection has ended
-                        #$ServerStream.Close()
-                        #$client.Client.Disconnect($True)
-                        #$client.Client.Close()
-                        #$client.Close()     
-                        $ConnectButton.IsEnabled = $True   
-                        $DisconnectButton.IsEnabled = $False                
+                        Start-Sleep -Seconds 1
                     }
-                    $job = "" | Select Job, PowerShell
-                    $job.PowerShell = $newPowerShell
-                    $Job.job = $newPowerShell.AddScript($sb).BeginInvoke()
-                    $ClientConnection.$Username = $job             
-                # }
+                    #Shutdown the connection as connection has ended
+                    $ConnectButton.IsEnabled = $True   
+                    $DisconnectButton.IsEnabled = $False                
+                }
+                $job = "" | Select Job, PowerShell
+                $job.PowerShell = $newPowerShell
+                $Job.job = $newPowerShell.AddScript($sb).BeginInvoke()
+                $ClientConnection.$Username = $job             
             } Catch {
                 #Errors Connecting to server
-                $Paragraph.Inlines.Add((New-ChatMessage -Message ("Unable to connect to {0} because of $_.Exception.Message ! Please try again later!" -f $RemoteServer) -ForeGround Red))
+                $Paragraph.Inlines.Add((New-ChatMessage -Message ("Unable to connect to $Server because of $_.Exception.Message ! Please try again later!") -ForeGround Red))
                 $ConnectButton.IsEnabled = $True
-                # $TcpClient.Close()  
                 $ClientConnection.user.PowerShell.EndInvoke($ClientConnections.user.Job)
                 $ClientConnection.user.PowerShell.Runspace.Close()
                 $ClientConnection.user.PowerShell.Dispose()
@@ -436,11 +435,8 @@ $SendButton.Add_Click({
         $Messagequeue.Enqueue(("~I{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text))
     }
     $Message = "~M{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text
-    # $data = [text.Encoding]::Ascii.GetBytes($Message)
-    # $Message | Add-Content -Path $Server
-    $username + "~~" + $Inputbox_txt.Text | Add-Content -Path $Server
-    # $ServerStream.Write($data,0,$data.length)
-    # $ServerStream.Flush()  
+    $Message | Add-Content -Path $Server
+    # $username + "~~" + $Inputbox_txt.Text | Add-Content -Path $Server
     $Inputbox_txt.Clear()  
 })
 
@@ -519,7 +515,6 @@ $Window.Add_Loaded({
                     #Server Shutdown
                     $Paragraph.Inlines.Add((New-ChatMessage -Message ("[{0}] " -f (Get-Date).ToLongTimeString()) -ForeGround Gray))
                     $Paragraph.Inlines.Add((New-ChatMessage -Message ("SERVER HAS DISCONNECTED.") -ForeGround Red))
-                    $ServerStream.Close() # $TcpClient.Close()  
                     $ClientConnection.user.PowerShell.EndInvoke($ClientConnections.user.Job)
                     $ClientConnection.user.PowerShell.Runspace.Close()
                     $ClientConnection.user.PowerShell.Dispose()  
@@ -551,12 +546,6 @@ $Window.Add_Loaded({
 })
 #Close Window
 $Window.Add_Closed({
-    If ($ServerStream) {
-        $ServerStream.Close()  
-    }
-    # If ($TcpClient) {
-    #     $TcpClient.Close()  
-    # }
     If ($ClientConnection.user) {
         $ClientConnection.user.PowerShell.EndInvoke($ClientConnection.user.Job)
         $ClientConnection.user.PowerShell.Runspace.Close()
@@ -590,10 +579,7 @@ $Window.Add_KeyDown({
                 $Messagequeue.Enqueue(("~I{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text))
             }
             $Message = "~M{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text
-            # $data = [text.Encoding]::Ascii.GetBytes($Message)
             $Message | Add-Content -Path $Server
-            # $ServerStream.Write($data,0,$data.length)
-            # $ServerStream.Flush()  
             $Inputbox_txt.Clear()  
         }  
         "S" {Save-Transcript}      
