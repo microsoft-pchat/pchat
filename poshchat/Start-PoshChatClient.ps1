@@ -260,7 +260,7 @@ $handle = $ps.AddScript({
             </Grid.RowDefinitions>  
             <Label Content = 'UserName' HorizontalAlignment = 'Stretch' Grid.Column = '0' Grid.Row = '0'/>
             <TextBox x:Name = 'username_txt' HorizontalAlignment = 'Stretch' Grid.Column = '2' Grid.Row = '0'/>    
-            <Label Content = 'Server' HorizontalAlignment = 'Stretch' Grid.Column = '0' Grid.Row = '1'/>
+            <Label Content = 'Filename' HorizontalAlignment = 'Stretch' Grid.Column = '0' Grid.Row = '1'/>
             <TextBox x:Name = 'servername_txt' HorizontalAlignment = 'Stretch' Grid.Column = '2' Grid.Row = '1'/>   
             <Button x:Name = 'Connect_btn' MaxWidth = '75' Height = '20' Content = 'Connect'
             Grid.Column = '0' Grid.Row = '2' HorizontalAlignment = 'stretch'/>
