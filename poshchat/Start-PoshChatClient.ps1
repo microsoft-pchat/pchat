@@ -409,6 +409,8 @@ $ConnectButton.Add_Click({
 
 #Send message
 $SendButton.Add_Click({
+    $Server = $Server_txt.text
+    
     #Send message to server
     If (($Inputbox_txt.Text).StartsWith("@")) {        
         $Messagequeue.Enqueue(("~I{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text))
