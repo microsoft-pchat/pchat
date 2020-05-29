@@ -99,6 +99,25 @@ $handle = $ps.AddScript({
             Write-Output $Run
         }
     }   
+
+    Function Script:Send-Image {
+        [cmdletbinding()]
+        Param (
+            [string]$ChatDirectory
+        )
+        Process {
+            $ImageDirectory = $ChatDirectory + "\Images\"
+    
+            if (-not (Test-Path -LiteralPath $ImageDirectory)) {
+                New-Item -Path $ImageDirectory -ItemType Directory
+            }
+    
+            $ImageName = $ImageDirectory + [guid]::NewGuid().Guid
+    
+            $image = Get-Clipboard -format image
+            $image.Save($ImageName)
+        }
+    }
     
     Function Script:Invoke-FontDialog {
         [cmdletbinding()]
@@ -582,7 +601,10 @@ $Window.Add_KeyDown({
             $Message | Add-Content -Path $Server
             $Inputbox_txt.Clear()  
         }  
-        "S" {Save-Transcript}      
+        "S" {Save-Transcript}
+        "V" {
+            Send-Image -ChatDirectory Server
+        }      
         Default {$Null}
         }
     }  
