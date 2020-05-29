@@ -1,5 +1,4 @@
 # Generate a random Alphanumeric string
-
 Function Get-RandomAlphanumericString {
 	
 	[CmdletBinding()]
@@ -15,15 +14,20 @@ Function Get-RandomAlphanumericString {
 	}	
 }
 
-#dir | where {$_.PsIsContainer} | Select-Object *.txt
-#dir . -filter "*.txt"
+#Write The Chat Rooms
+Write-Host ""
+Write-Host "Exsiting Chat Rooms"
+Write-Host "--------------------"
+(Split-Path -Path ".\*.txt" -Leaf -Resolve).Replace(".txt","")
+Write-Host ""
 
-$Chatroom = Read-Host -Prompt 'Chat room to join/create (leave blank for a generated name)'
+#Get 
+$ChatRoom = Read-Host -Prompt 'Chat Room to join/create (leave blank for a generated name)'
 
-If ($Chatroom -eq "") {
-    $Chatroom = (Get-RandomAlphanumericString | Tee-Object -variable teeTime).ToLower()
-    Write-Host "Room Name: $Chatroom"
+If ($ChatRoom -eq "") {
+    $ChatRoom = (Get-RandomAlphanumericString | Tee-Object -variable teeTime).ToLower()
+    Write-Host "Room Name: $ChatRoom"
 }
 
 Import-Module .\chat.ps1
-Enter-Chat -ChatChannelName $Chatroom -Name $env:USERNAME -ShowOldPosts
+Enter-Chat -ChatChannelName $ChatRoom -Name ($env:USERNAME).ToUpper() -ShowOldPosts
