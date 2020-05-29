@@ -338,48 +338,50 @@ $ConnectButton.Add_Click({
             $Paragraph.Inlines.Add((New-ChatMessage -Message $message -ForeGround Green))  
             $Paragraph.Inlines.Add((New-Object System.Windows.Documents.LineBreak))  
             
-            #Connect to server
-            $Endpoint = new-object System.Net.IPEndpoint ([ipaddress]::any,$SourcePort)
-            $TcpClient = [Net.Sockets.TCPClient]$endpoint    
+            # Connect to the file
+            # $Endpoint = new-object System.Net.IPEndpoint ([ipaddress]::any,$SourcePort)
+            # $TcpClient = [Net.Sockets.TCPClient]$endpoint    
             Try {
-                $TcpClient.Connect($Server,15600)
-                $Global:ServerStream = $TcpClient.GetStream()
+                # $TcpClient.Connect($Server,15600)
+                $Global:ServerStream = [System.IO.File]::Open($Server, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite) # $TcpClient.GetStream()
                 $data = [text.Encoding]::Ascii.GetBytes($Username)
                 $ServerStream.Write($data,0,$data.length)
                 $ServerStream.Flush()   
-                If ($TcpClient.Connected) {       
+                If ($ServerStream.CanRead -and $ServerStream.CanWrite) { # ($TcpClient.Connected) {       
                     $Window.Title = ("{0}: Connected as {1}" -f $Window.Title,$Username)
                     #Kick off a job to watch for messages from clients
                     $newRunspace = [RunSpaceFactory]::CreateRunspace()
                     $newRunspace.Open()
-                    $newRunspace.SessionStateProxy.setVariable("TcpClient", $TcpClient)
+                    # $newRunspace.SessionStateProxy.setVariable("TcpClient", $TcpClient)
                     $newRunspace.SessionStateProxy.setVariable("MessageQueue", $MessageQueue)                
                     $newRunspace.SessionStateProxy.setVariable("ConnectButton", $ConnectButton)  
                     $newPowerShell = [PowerShell]::Create()
                     $newPowerShell.Runspace = $newRunspace   
                     $sb = {
                         #Code to kick off client connection monitor and look for incoming messages.
-                        $client = $TCPClient
-                        $serverstream = $Client.GetStream()
+                        # $client = $TCPClient
+                        # $serverstream = $Client.GetStream()
                         #While client is connected to server, check for incoming traffic
-                        While ($client.Connected) {        
+                        While ($true) { # $client.Connected) {        
                             Try {                
                                 [byte[]]$inStream = New-Object byte[] 200KB
                                 $buffSize = $client.ReceiveBufferSize
-                                $return = $serverstream.Read($inStream, 0, $buffSize)
+                                $return = $ServerStream.Read($inStream, 0, $buffSize)
                                 If ($return -gt 0) {
                                     $Messagequeue.Enqueue([System.Text.Encoding]::ASCII.GetString($inStream[0..($return - 1)]))
                                 }
                             } Catch {
                                 #Connection to server has been closed                            
+                                $Paragraph.Inlines.Add((New-ChatMessage -Message ("Unable to read from $Server because of $_.Exception.Message so closing connection" -f $RemoteServer) -ForeGround Red))
                                 $Messagequeue.Enqueue("~S")
                                 Break
                             }
                         }
                         #Shutdown the connection as connection has ended
-                        $client.Client.Disconnect($True)
-                        $client.Client.Close()
-                        $client.Close()     
+                        $ServerStream.Close()
+                        #$client.Client.Disconnect($True)
+                        #$client.Client.Close()
+                        #$client.Close()     
                         $ConnectButton.IsEnabled = $True   
                         $DisconnectButton.IsEnabled = $False                
                     }
@@ -390,9 +392,9 @@ $ConnectButton.Add_Click({
                 }
             } Catch {
                 #Errors Connecting to server
-                $Paragraph.Inlines.Add((New-ChatMessage -Message ("Unable to connect to {0}! Please try again later!" -f $RemoteServer) -ForeGround Red))
+                $Paragraph.Inlines.Add((New-ChatMessage -Message ("Unable to connect to {0} because of $_.Exception.Message ! Please try again later!" -f $RemoteServer) -ForeGround Red))
                 $ConnectButton.IsEnabled = $True
-                $TcpClient.Close()  
+                # $TcpClient.Close()  
                 $ClientConnection.user.PowerShell.EndInvoke($ClientConnections.user.Job)
                 $ClientConnection.user.PowerShell.Runspace.Close()
                 $ClientConnection.user.PowerShell.Dispose()
@@ -493,7 +495,7 @@ $Window.Add_Loaded({
                     #Server Shutdown
                     $Paragraph.Inlines.Add((New-ChatMessage -Message ("[{0}] " -f (Get-Date).ToLongTimeString()) -ForeGround Gray))
                     $Paragraph.Inlines.Add((New-ChatMessage -Message ("SERVER HAS DISCONNECTED.") -ForeGround Red))
-                    $TcpClient.Close()  
+                    $ServerStream.Close() # $TcpClient.Close()  
                     $ClientConnection.user.PowerShell.EndInvoke($ClientConnections.user.Job)
                     $ClientConnection.user.PowerShell.Runspace.Close()
                     $ClientConnection.user.PowerShell.Dispose()  
@@ -525,9 +527,12 @@ $Window.Add_Loaded({
 })
 #Close Window
 $Window.Add_Closed({
-    If ($TcpClient) {
-        $TcpClient.Close()  
+    If ($ServerStream) {
+        $ServerStream.Close()  
     }
+    # If ($TcpClient) {
+    #     $TcpClient.Close()  
+    # }
     If ($ClientConnection.user) {
         $ClientConnection.user.PowerShell.EndInvoke($ClientConnection.user.Job)
         $ClientConnection.user.PowerShell.Runspace.Close()
