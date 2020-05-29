@@ -357,6 +357,10 @@ $ConnectButton.Add_Click({
                     $newRunspace.SessionStateProxy.setVariable("ConnectButton", $ConnectButton)  
                     $newPowerShell = [PowerShell]::Create()
                     $newPowerShell.Runspace = $newRunspace   
+
+                    $fileContents = Get-Content -Path $Server
+                    $fileLines = $fileContents.Split([System.Environment]::NewLine)
+
                     $sb = {
                         #Code to kick off client connection monitor and look for incoming messages.
                         # $client = $TCPClient
@@ -366,16 +370,32 @@ $ConnectButton.Add_Click({
                             Try {                
                                 [byte[]]$inStream = New-Object byte[] 200KB
                                 $buffSize = $client.ReceiveBufferSize
-                                $return = Get-Content -Path $Server # $ServerStream.Read($inStream, 0, $buffSize)
+
+                                # Get the contents of the updated file
+                                $updatedFileContents = Get-Content -Path $Server
+                                $updatedFileLines = $updatedFileContents.Split([System.Environment]::NewLine)
+                                
+                                # Write any lines that were added to the file to the window
+                                $newLines = @()
+                                for ($i = $fileLines[$fileLines.Count]; $i -lt $updatedFileLines[$updatedFileLines.Count]; $i += 1)
+                                {
+                                    $newLines += $updatedFileLines[$i]
+                                }
+                                $return = $newLines # $ServerStream.Read($inStream, 0, $buffSize)
                                 If ($return -gt 0) {
                                     $Messagequeue.Enqueue([System.Text.Encoding]::ASCII.GetString($inStream[0..($return - 1)]))
                                 }
+
+                                # Update the file so the comparison will work again
+                                $fileContents = $updatedFileContents
+                                $fileLines = $fileContents.Split([System.Environment]::NewLine)
                             } Catch {
                                 #Connection to server has been closed                            
                                 $Paragraph.Inlines.Add((New-ChatMessage -Message ("Unable to read from $Server because of $_.Exception.Message so closing connection" -f $RemoteServer) -ForeGround Red))
                                 $Messagequeue.Enqueue("~S")
                                 Break
                             }
+                            Start-Sleep -Seconds 1
                         }
                         #Shutdown the connection as connection has ended
                         #$ServerStream.Close()
@@ -410,13 +430,14 @@ $ConnectButton.Add_Click({
 #Send message
 $SendButton.Add_Click({
     $Server = $Server_txt.text
-    
+
     #Send message to server
     If (($Inputbox_txt.Text).StartsWith("@")) {        
         $Messagequeue.Enqueue(("~I{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text))
     }
     $Message = "~M{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text
     # $data = [text.Encoding]::Ascii.GetBytes($Message)
+    # $Message | Add-Content -Path $Server
     $username + "~~" + $Inputbox_txt.Text | Add-Content -Path $Server
     # $ServerStream.Write($data,0,$data.length)
     # $ServerStream.Flush()  
