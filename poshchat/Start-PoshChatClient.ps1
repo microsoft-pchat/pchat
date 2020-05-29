@@ -344,8 +344,8 @@ $ConnectButton.Add_Click({
             Try {
                 # $TcpClient.Connect($Server,15600)
                 # $Global:ServerStream = $TcpClient.GetStream() # [System.IO.File]::Open($Server, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite) 
-                $data = [text.Encoding]::Ascii.GetBytes($Username)
-                $data | Add-Content -Path $Server # $ServerStream.Write($data,0,$data.length)
+                # $data = [text.Encoding]::Ascii.GetBytes($Username)
+                $Message | Add-Content -Path $Server # $ServerStream.Write($data,0,$data.length)
                 # $ServerStream.Flush()   
                 # If ($TcpClient.Connected) { # ($ServerStream.CanRead -and $ServerStream.CanWrite) { #
                     $Window.Title = ("{0}: Connected as {1}" -f $Window.Title,$Username)
@@ -414,8 +414,8 @@ $SendButton.Add_Click({
         $Messagequeue.Enqueue(("~I{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text))
     }
     $Message = "~M{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text
-    $data = [text.Encoding]::Ascii.GetBytes($Message)
-    $data | Add-Content -Path $Server
+    # $data = [text.Encoding]::Ascii.GetBytes($Message)
+    $username + "~~" + $Inputbox_txt.Text | Add-Content -Path $Server
     # $ServerStream.Write($data,0,$data.length)
     # $ServerStream.Flush()  
     $Inputbox_txt.Clear()  
@@ -567,8 +567,8 @@ $Window.Add_KeyDown({
                 $Messagequeue.Enqueue(("~I{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text))
             }
             $Message = "~M{0}{1}{2}" -f $username,"~~",$Inputbox_txt.Text
-            $data = [text.Encoding]::Ascii.GetBytes($Message)
-            $data | Add-Content -Path $Server
+            # $data = [text.Encoding]::Ascii.GetBytes($Message)
+            $Message | Add-Content -Path $Server
             # $ServerStream.Write($data,0,$data.length)
             # $ServerStream.Flush()  
             $Inputbox_txt.Clear()  
