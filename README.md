@@ -8,6 +8,7 @@ Pchat is a simple file based I/O chat solution that allows users to talk to each
 2. Launch a powershell window
 3. Navigate to the pchat directory, then to the `chat` subdirectory
 4. Run `Launch_pChat.ps1` in the powershell window to start pChat
+   - `Launch_pChat.ps1 -ChatChannelName <ChannelName> -Name <UserName> -ShowOldPost <True/False> -HomeShare <Server/Directory Location>`
 
 ## Startup Options
 | Option | Type | Description | Optional/Mandatory | 
