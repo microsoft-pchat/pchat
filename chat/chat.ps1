@@ -52,7 +52,7 @@ function Enter-Chat
         Write-Host "To quit, enter: quit.
 To start screenshare, enter: share"
 	}
-    if ($isStopCommand -eq $false)
+    else if ($isStopCommand -eq $false)
     {
       "[$Name] $inputText" | Add-Content -Path $Path
     }
