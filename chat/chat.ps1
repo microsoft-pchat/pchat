@@ -1,6 +1,9 @@
+$rootPath = $global:PSScriptRoot
+echo $rootPath
 # make sure you adjust this path
 # it must point to a network share where you have read and write permissions
-$ServerShare = "\\RE1NNPF00002B54\test"
+$ServerShare = "$rootPath\chatsRooms"
+
 
 function Enter-Chat 
 {
@@ -19,7 +22,7 @@ function Enter-Chat
     $HomeShare = $ServerShare
     
   )
-  
+
   if ($ShowOldPosts)
   {
     $Option = ''
@@ -38,20 +41,27 @@ function Enter-Chat
 
   $process = Start-Process -FilePath powershell -ArgumentList "-noprofile -windowstyle hidden -command Get-COntent -Path '$Path' $Option -Wait | Out-GridView -Title 'Chat: [$ChatChannelName]'" -PassThru
 
-  Write-Host "To exit, enter: quit"
+  Write-Host "To start screenshare, enter: /share"
+  Write-Host "To exit, enter: /quit"
   "[$Name entered the chat]" | Add-Content -Path $Path
   do
   {
     Write-Host "[$ChatChannelName]: " -ForegroundColor Green -NoNewline
     $inputText = Read-Host 
-    
-    $isStopCommand = 'quit','exit','stop','leave' -contains $inputText
+
+    $isStopCommand = '/quit','/exit','/stop','/leave' -contains $inputText
     if ($isStopCommand -eq $false)
     {
       "[$Name] $inputText" | Add-Content -Path $Path
     }
-    
-    
+
+    $isShareCommand = '/share','/screen','/screenshare' -contains $inputText
+    if ($isShareCommand -eq $true)
+    {
+      "[$Name] (Starting Screenshare)" | Add-Content -Path $Path
+      invoke-expression 'cmd /c start powershell -File "$rootPath\screenshare\Friday.ps1"'
+    }
+
   } until ($isStopCommand -eq $true)
   "[$Name left the chat]" | Add-Content -Path $Path
   
