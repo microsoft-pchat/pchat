@@ -8,7 +8,7 @@ Pchat is a simple file based I/O chat solution that allows users to talk to each
 2. Launch a powershell window
 3. Navigate to the pchat directory, then to the `chat` subdirectory
 4. Run `generateShortcut.ps1` in the powershell window to generate the shortcut for pchat
-5. Click on the pChat.lnk shortcut to start pchat
+5. Click on the `pChat.lnk` shortcut to start pchat
 6. Follow the prompt to join the right channel
 
 ## Other Commands
