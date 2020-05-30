@@ -22,7 +22,7 @@ Write-Host "Exsiting Chat Rooms"
 Write-Host "--------------------"
 
 Try {
-    (Split-Path -Path "$rootPath\chatsRooms\*.txt" -Leaf -Resolve).Replace(".txt","")
+    (Split-Path -Path "$rootPath\chatRooms\*.txt" -Leaf -Resolve).Replace(".txt","")
 }
 
 Catch {
