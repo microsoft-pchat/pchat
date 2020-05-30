@@ -17,3 +17,11 @@ Pchat is a simple file based I/O chat solution that allows users to talk to each
 | Name | string | UserName | Optional |
 | ShowOldPosts | bool | Whether chat history will be shown | Optional |
 | HomeShare | string | Server file share | Optional |
+
+## Other Commands
+Enter these commands into the chat window
+| Command(s) | Function |
+| ----------- |  ----------- |
+| quit<br/>exit<br/>stop<br/>leave | Exits the pchat program |
+| share | Start sharing screen |
+| help | See help text |
