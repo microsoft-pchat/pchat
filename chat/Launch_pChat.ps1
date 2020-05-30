@@ -1,3 +1,5 @@
+$rootPath = $global:PSScriptRoot
+
 # Generate a random Alphanumeric string
 Function Get-RandomAlphanumericString {
 	
@@ -18,7 +20,16 @@ Function Get-RandomAlphanumericString {
 Write-Host ""
 Write-Host "Exsiting Chat Rooms"
 Write-Host "--------------------"
-(Split-Path -Path ".\*.txt" -Leaf -Resolve).Replace(".txt","")
+
+Try {
+    (Split-Path -Path "$rootPath\chatsRooms\*.txt" -Leaf -Resolve).Replace(".txt","")
+}
+
+Catch {
+
+ Write-Host "NONE"
+
+}
 Write-Host ""
 
 #Get 
@@ -29,5 +40,5 @@ If ($ChatRoom -eq "") {
     Write-Host "Room Name: $ChatRoom"
 }
 
-Import-Module .\chat.ps1
+Import-Module $rootPath\chat.ps1
 Enter-Chat -ChatChannelName $ChatRoom -Name ($env:USERNAME).ToUpper() -ShowOldPosts
