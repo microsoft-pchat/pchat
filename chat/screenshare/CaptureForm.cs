@@ -79,7 +79,7 @@ namespace WindowsFormsApp1
                     using (TcpClient client = new TcpClient())
                     {
                         client.Connect(Host, Port);
-                        SslStream stream = new SslStream(client.GetStream(), true, new RemoteCertificateValidationCallback((a, b, c, d) => { return true; }));
+                        SslStream stream = new SslStream(client.GetStream());
                         stream.AuthenticateAsClient(Host);
 
                         // create client here
