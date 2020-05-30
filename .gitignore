@@ -1,4 +1,4 @@
 *serverip
-chat/chatsRooms/
+chat/chatsRooms/*.txt
 *.lnk
 /.vs/VSWorkspaceState.json

@@ -2,7 +2,7 @@ $rootPath = $global:PSScriptRoot
 
 # make sure you adjust this path
 # it must point to a network share where you have read and write permissions
-$ServerShare = "$rootPath\chatsRooms"
+$ServerShare = "$rootPath\chatRooms"
 
 function Enter-Chat 
 {
@@ -54,7 +54,7 @@ function Enter-Chat
         Write-Host "To quit, enter: /quit.
 To start screenshare, enter: /share"
 	}
-    else if ($isStopCommand -eq $false)
+    elseif ($isStopCommand -eq $false)
     {
       "[$Name] $inputText" | Add-Content -Path $Path
     }
