@@ -151,8 +151,7 @@ namespace WindowsFormsApp1
             Bitmap captureBitmap = new Bitmap(area.Width, area.Height, PixelFormat.Format32bppArgb);
             using (Graphics captureGraphics = Graphics.FromImage(captureBitmap))
             {
-                //captureGraphics.CopyFromScreen(area.Left, area.Top, 0, 0, area.Size);
-                captureGraphics.CopyFromScreen(area.Left, area.Top, 0, 0, new Size((int)(area.Size.Width * 1.5f), (int)(area.Size.Height * 1.5f)));
+                captureGraphics.CopyFromScreen(area.Left, area.Top, 0, 0, new Size((int)(area.Size.Width), (int)(area.Size.Height)));
                 using (MemoryStream ms = new MemoryStream())
                 {
                     captureBitmap.Save(ms, ImageFormat.Jpeg);
