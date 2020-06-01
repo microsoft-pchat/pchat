@@ -18,7 +18,7 @@ Function Get-RandomAlphanumericString {
 
 #Write The Chat Rooms
 Write-Host ""
-Write-Host "Exsiting Chat Rooms"
+Write-Host "Existing Chat Rooms"
 Write-Host "--------------------"
 
 Try {
@@ -33,7 +33,7 @@ Catch {
 Write-Host ""
 
 #Get 
-$ChatRoom = Read-Host -Prompt 'Chat Room to join/create (leave blank for a generated name)'
+$ChatRoom = Read-Host -Prompt 'Chat Room to join/create (leave blank for auto-generated room name)'
 
 If ($ChatRoom -eq "") {
     $ChatRoom = (Get-RandomAlphanumericString | Tee-Object -variable teeTime).ToLower()
@@ -41,4 +41,4 @@ If ($ChatRoom -eq "") {
 }
 
 Import-Module $rootPath\chat.ps1
-Enter-Chat -ChatChannelName $ChatRoom -Name ($env:USERNAME).ToUpper() -ShowOldPosts
+Enter-Chat -ChatRoomName $ChatRoom -UserName ($env:USERNAME).ToUpper() -ShowOldPosts

@@ -9,7 +9,7 @@ Pchat is a simple file based I/O chat solution that allows users to talk to each
 3. Navigate to the pchat directory, then to the `chat` subdirectory
 4. Run `generateShortcut.ps1` in the powershell window to generate the shortcut for pchat
 5. Click on the `pChat.lnk` shortcut to start pchat
-6. Follow the prompt to join the right channel
+6. Follow the prompt to join chat room
 
 ## Other Commands
 Enter these commands into the chat window
@@ -20,12 +20,12 @@ Enter these commands into the chat window
 | help | See help text |
 
 ## Manually Launching Pchat (Advanced)
-Command: `chat.ps1 -ChatChannelName <ChannelName> -Name <UserName> -ShowOldPost <True/False> -HomeShare <Server/Directory Location>`
+Command: `chat.ps1 -ChatRoomName <ChatRoomName> -UserName <UserName> -ShowOldPost <True/False> -HomeShare <Server/Directory Location>`
 ### Startup Options for chat.ps1
 | Option | Type | Description | Optional/Mandatory | 
 | ----------- | ----------- | ----------- | ----------- |
-| ChatChannelName | string | Name of the channel to join  | Mandatory |
-| Name | string | UserName | Optional |
+| ChatRoomName | string | Name of the chat room to join  | Mandatory |
+| UserName | string | User Name | Optional |
 | ShowOldPosts | bool | Whether chat history will be shown | Optional |
 | HomeShare | string | Server file share | Optional |
 
